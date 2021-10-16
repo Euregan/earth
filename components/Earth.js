@@ -7,16 +7,16 @@ import {
   MeshBasicMaterial,
   SphereGeometry,
   CircleGeometry,
-  Vector3,
+  Vector3
 } from 'three'
 
 const earthRadius = 600
 
-const generateDots = (image, imageContext) => {
+const generateDots = (dotCount, image, imageContext) => {
   const context = document.createElement('canvas').getContext('2d')
   context.drawImage(image, 0, 0, image.width, image.height)
 
-  const isPointLand = (point) => {
+  const isPointLand = point => {
     const [r, g, b, a] = imageContext.getImageData(
       Math.round(point.x * image.width),
       Math.round(point.y * image.height),
@@ -27,16 +27,14 @@ const generateDots = (image, imageContext) => {
     return a > 0
   }
 
-  const DOT_COUNT = 10000
-
   const dots = []
 
   const material = new MeshBasicMaterial({ color: 0xffffff })
   const vector = new Vector3()
 
-  for (let i = DOT_COUNT; i > 0; i--) {
-    const phi = Math.acos(-1 + (2 * i) / DOT_COUNT)
-    const theta = Math.sqrt(DOT_COUNT * Math.PI) * phi
+  for (let i = dotCount; i > 0; i--) {
+    const phi = Math.acos(-1 + (2 * i) / dotCount)
+    const theta = Math.sqrt(dotCount * Math.PI) * phi
 
     const dotGeometry = new CircleGeometry(2, 5)
     // Pass the angle between this dot an the Y-axis (phi)
@@ -63,7 +61,7 @@ const generateDots = (image, imageContext) => {
   return dots
 }
 
-const Earth = () => {
+const Earth = ({ dotCount = 10000 }) => {
   const containerRef = useRef()
   const canvasRef = useRef()
   const [world, setWorld] = useState(null)
@@ -103,24 +101,24 @@ const Earth = () => {
 
       const context = canvasRef.current.getContext('2d')
       context.drawImage(world, 0, 0, world.width, world.height)
-      const dots = generateDots(world, context)
-      dots.forEach((dot) => scene.add(dot))
+      const dots = generateDots(dotCount, world, context)
+      dots.forEach(dot => scene.add(dot))
 
       const hasStopped = () => stop
 
-      const animate = function () {
+      const animate = function() {
         // Preventing the animation to keep going even if the component has been
         // removed from the DOM
         if (document.body.contains(renderer.domElement)) {
           requestAnimationFrame(animate)
         }
 
-        dots.forEach((dot) => (dot.rotation.y += 0.006))
+        dots.forEach(dot => (dot.rotation.y += 0.006))
 
         renderer.render(scene, camera)
       }
 
-      dots.forEach((dot) => (dot.rotation.x += 0.5))
+      dots.forEach(dot => (dot.rotation.x += 0.5))
       animate()
 
       return () => {
