@@ -9,6 +9,7 @@ import {
   CircleGeometry,
   Vector3
 } from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 const earthRadius = 600
 
@@ -31,22 +32,14 @@ const generateDots = (dotCount, image, imageContext) => {
 
   const material = new MeshBasicMaterial({ color: 0xffffff })
   const vector = new Vector3()
+  const dotGeometry = new CircleGeometry(2, 5)
 
   for (let i = dotCount; i > 0; i--) {
     const phi = Math.acos(-1 + (2 * i) / dotCount)
     const theta = Math.sqrt(dotCount * Math.PI) * phi
 
-    const dotGeometry = new CircleGeometry(2, 5)
-    // Pass the angle between this dot an the Y-axis (phi)
-    // Pass this dot’s angle around the y axis (theta)
-    // Scale each position by 600 (the radius of the globe)
     vector.setFromSphericalCoords(earthRadius, phi, theta)
-    dotGeometry.lookAt(vector)
 
-    // Move the dot to the newly calculated position
-    dotGeometry.translate(vector.x, vector.y, vector.z)
-
-    // u and v are expressed in percent of the texture (going from 0 to 1)
     const u =
       0.5 +
       Math.atan2(vector.x / earthRadius, vector.z / earthRadius) / (2 * Math.PI)
@@ -54,6 +47,9 @@ const generateDots = (dotCount, image, imageContext) => {
 
     if (isPointLand({ x: u, y: v })) {
       const dot = new Mesh(dotGeometry, material)
+      dot.lookAt(vector)
+      dot.position.set(vector.x, vector.y, vector.z)
+
       dots.push(dot)
     }
   }
@@ -92,10 +88,13 @@ const Earth = ({ dotCount = 10000 }) => {
       )
       containerRef.current.appendChild(renderer.domElement)
 
-      // const sphereGeometry = new SphereGeometry(earthRadius - 10, 32, 16)
-      // const sphereMaterial = new MeshBasicMaterial({ color: 0x024883 })
-      // const sphere = new Mesh(sphereGeometry, sphereMaterial)
-      // scene.add(sphere)
+      const controls = new OrbitControls(camera, renderer.domElement)
+      controls.update()
+
+      const sphereGeometry = new SphereGeometry(earthRadius - 10, 32, 16)
+      const sphereMaterial = new MeshBasicMaterial({ color: 0x024883 })
+      const sphere = new Mesh(sphereGeometry, sphereMaterial)
+      scene.add(sphere)
 
       camera.position.z = earthRadius * 3
 
@@ -113,12 +112,11 @@ const Earth = ({ dotCount = 10000 }) => {
           requestAnimationFrame(animate)
         }
 
-        dots.forEach(dot => (dot.rotation.y += 0.006))
+        controls.update()
 
         renderer.render(scene, camera)
       }
 
-      dots.forEach(dot => (dot.rotation.x += 0.5))
       animate()
 
       return () => {
@@ -129,7 +127,7 @@ const Earth = ({ dotCount = 10000 }) => {
 
   return (
     <>
-      <div ref={containerRef} style={{ height: '45rem' }}>
+      <div ref={containerRef} style={{ height: '100vh' }}>
         <style jsx>{`
           div {
             background: #01234d;
