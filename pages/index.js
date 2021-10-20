@@ -3,9 +3,8 @@ import { useRouter } from 'next/router'
 
 const Home = () => {
   const router = useRouter()
-  const { dotCount = 10000 } = router.query
 
-  return <Earth dotCount={dotCount} />
+  return <Earth />
 }
 
 export default Home

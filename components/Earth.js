@@ -20,6 +20,7 @@ import atmosphereFragementShader from '../lib/atmosphere.fragment.glsl'
 import atmosphereVertexShader from '../lib/atmosphere.vertex.glsl'
 
 const earthRadius = 600
+const dotCount = 60000
 
 const generateDots = (dotCount, image, imageContext) => {
   const context = document.createElement('canvas').getContext('2d')
@@ -82,7 +83,7 @@ const generateDots = (dotCount, image, imageContext) => {
   return dots
 }
 
-const Earth = ({ dotCount = 10000 }) => {
+const Earth = () => {
   const containerRef = useRef()
   const canvasRef = useRef()
   const [world, setWorld] = useState(null)
