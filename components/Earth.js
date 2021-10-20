@@ -4,12 +4,20 @@ import {
   WebGLRenderer,
   PerspectiveCamera,
   Mesh,
-  MeshBasicMaterial,
+  MeshStandardMaterial,
+  ShaderMaterial,
   SphereGeometry,
   CircleGeometry,
-  Vector3
+  Vector3,
+  Vector2,
+  DirectionalLight,
+  BackSide,
+  AdditiveBlending,
+  Color
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import atmosphereFragementShader from '../lib/atmosphere.fragment.glsl'
+import atmosphereVertexShader from '../lib/atmosphere.vertex.glsl'
 
 const earthRadius = 600
 
@@ -30,7 +38,24 @@ const generateDots = (dotCount, image, imageContext) => {
 
   const dots = []
 
-  const material = new MeshBasicMaterial({ color: 0xffffff })
+  const visibleThreshold = '0.999937'
+  const invisibleThreshold = '0.99994'
+  const material = new ShaderMaterial({
+    uniforms: {},
+    fragmentShader: `
+      void main() {
+        gl_FragColor.r = 1.0;
+        gl_FragColor.g = 1.0;
+        gl_FragColor.b = 1.0;
+        gl_FragColor.a = 1.0;
+
+        if (gl_FragCoord.z > ${visibleThreshold}) {
+          gl_FragColor.a = 1.0 - (gl_FragCoord.z - ${visibleThreshold}) / (${invisibleThreshold} - ${visibleThreshold});
+        }
+  		}
+    `
+  })
+  material.transparent = true
   const vector = new Vector3()
   const dotGeometry = new CircleGeometry(2, 5)
 
@@ -91,10 +116,45 @@ const Earth = ({ dotCount = 10000 }) => {
       const controls = new OrbitControls(camera, renderer.domElement)
       controls.update()
 
-      const sphereGeometry = new SphereGeometry(earthRadius - 10, 32, 16)
-      const sphereMaterial = new MeshBasicMaterial({ color: 0x024883 })
+      // Globe
+      const sphereGeometry = new SphereGeometry(earthRadius - 10, 64, 64)
+      const sphereMaterial = new MeshStandardMaterial({ color: 0x024883 })
       const sphere = new Mesh(sphereGeometry, sphereMaterial)
       scene.add(sphere)
+
+      // Halo
+      const invisibleThreshold = '0.99994'
+      const visibleThreshold = '0.999946'
+      const haloGeometry = new SphereGeometry(earthRadius, 64, 64)
+      const haloMaterial = new ShaderMaterial({
+        uniforms: {
+          haloColor: {
+            type: 'c',
+            value: new Color(1844322)
+          },
+          viewVector: {
+            type: 'v3',
+            value: new Vector3(0, 0, earthRadius)
+          }
+        },
+        vertexShader: atmosphereVertexShader,
+        fragmentShader: atmosphereFragementShader,
+        side: BackSide,
+        blending: AdditiveBlending
+      })
+      const halo = new Mesh(haloGeometry, haloMaterial)
+      halo.scale.multiplyScalar(1.23)
+      halo.rotateX(0.03 * Math.PI)
+      halo.rotateY(0.03 * Math.PI)
+      scene.add(halo)
+
+      // Lights
+      const firstLight = new DirectionalLight(0xffffff, 1.0)
+      firstLight.position.set(0, 1, 0.6)
+      scene.add(firstLight)
+      const secondLight = new DirectionalLight(0xffffff, 1.0)
+      secondLight.position.set(-1, 0.6, 0.2)
+      scene.add(secondLight)
 
       camera.position.z = earthRadius * 3
 
@@ -102,8 +162,6 @@ const Earth = ({ dotCount = 10000 }) => {
       context.drawImage(world, 0, 0, world.width, world.height)
       const dots = generateDots(dotCount, world, context)
       dots.forEach(dot => scene.add(dot))
-
-      const hasStopped = () => stop
 
       const animate = function() {
         // Preventing the animation to keep going even if the component has been
