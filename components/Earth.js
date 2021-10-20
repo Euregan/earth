@@ -13,7 +13,7 @@ import {
   DirectionalLight,
   BackSide,
   AdditiveBlending,
-  Color
+  Color,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import atmosphereFragementShader from '../lib/atmosphere.fragment.glsl'
@@ -26,7 +26,7 @@ const generateDots = (dotCount, image, imageContext) => {
   const context = document.createElement('canvas').getContext('2d')
   context.drawImage(image, 0, 0, image.width, image.height)
 
-  const isPointLand = point => {
+  const isPointLand = (point) => {
     const [r, g, b, a] = imageContext.getImageData(
       Math.round(point.x * image.width),
       Math.round(point.y * image.height),
@@ -54,7 +54,7 @@ const generateDots = (dotCount, image, imageContext) => {
           gl_FragColor.a = 1.0 - (gl_FragCoord.z - ${visibleThreshold}) / (${invisibleThreshold} - ${visibleThreshold});
         }
   		}
-    `
+    `,
   })
   material.transparent = true
   const vector = new Vector3()
@@ -83,7 +83,7 @@ const generateDots = (dotCount, image, imageContext) => {
   return dots
 }
 
-const Earth = () => {
+const Earth = ({ style = {} }) => {
   const containerRef = useRef()
   const canvasRef = useRef()
   const [world, setWorld] = useState(null)
@@ -131,17 +131,17 @@ const Earth = () => {
         uniforms: {
           haloColor: {
             type: 'c',
-            value: new Color(1844322)
+            value: new Color(1844322),
           },
           viewVector: {
             type: 'v3',
-            value: new Vector3(0, 0, earthRadius)
-          }
+            value: new Vector3(0, 0, earthRadius),
+          },
         },
         vertexShader: atmosphereVertexShader,
         fragmentShader: atmosphereFragementShader,
         side: BackSide,
-        blending: AdditiveBlending
+        blending: AdditiveBlending,
       })
       const halo = new Mesh(haloGeometry, haloMaterial)
       halo.scale.multiplyScalar(1.23)
@@ -162,9 +162,9 @@ const Earth = () => {
       const context = canvasRef.current.getContext('2d')
       context.drawImage(world, 0, 0, world.width, world.height)
       const dots = generateDots(dotCount, world, context)
-      dots.forEach(dot => scene.add(dot))
+      dots.forEach((dot) => scene.add(dot))
 
-      const animate = function() {
+      const animate = function () {
         // Preventing the animation to keep going even if the component has been
         // removed from the DOM
         if (document.body.contains(renderer.domElement)) {
@@ -179,20 +179,16 @@ const Earth = () => {
       animate()
 
       return () => {
-        containerRef.current.removeChild(renderer.domElement)
+        if (containerRef.current) {
+          containerRef.current.removeChild(renderer.domElement)
+        }
       }
     }
   }, [containerRef, canvasRef, imageLoaded])
 
   return (
     <>
-      <div ref={containerRef} style={{ height: '100vh' }}>
-        <style jsx>{`
-          div {
-            background: #01234d;
-          }
-        `}</style>
-      </div>
+      <div ref={containerRef} style={style} />
       <canvas
         ref={canvasRef}
         width={`${world ? world.width : 0}px`}
