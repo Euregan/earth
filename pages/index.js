@@ -12,6 +12,7 @@ const Home = () => {
         now in 3D
       </div>
       <Earth
+        autorotate
         style={{
           position: 'absolute',
           right: '0rem',

@@ -14,6 +14,7 @@ import {
   BackSide,
   AdditiveBlending,
   Color,
+  Spherical,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import atmosphereFragementShader from '../lib/atmosphere.fragment.glsl'
@@ -43,6 +44,7 @@ const generateDots = (dotCount, image, imageContext) => {
   const invisibleThreshold = '0.99994'
   const material = new ShaderMaterial({
     uniforms: {},
+    side: BackSide,
     fragmentShader: `
       void main() {
         gl_FragColor.r = 1.0;
@@ -83,7 +85,7 @@ const generateDots = (dotCount, image, imageContext) => {
   return dots
 }
 
-const Earth = ({ style = {} }) => {
+const Earth = ({ style = {}, autorotate }) => {
   const containerRef = useRef()
   const canvasRef = useRef()
   const [world, setWorld] = useState(null)
@@ -164,7 +166,11 @@ const Earth = ({ style = {} }) => {
       const dots = generateDots(dotCount, world, context)
       dots.forEach((dot) => scene.add(dot))
 
-      const animate = function () {
+      let lastTimestamp = 0
+      const spherical = new Spherical(0, 0, 0)
+      const vector = new Vector3(0, 0, 0)
+      const animate = function (timestamp = 0) {
+        const delta = timestamp - lastTimestamp
         // Preventing the animation to keep going even if the component has been
         // removed from the DOM
         if (document.body.contains(renderer.domElement)) {
@@ -172,6 +178,24 @@ const Earth = ({ style = {} }) => {
         }
 
         controls.update()
+
+        if (autorotate) {
+          const rotation =
+            (autorotate === true ? Math.PI / 90000 : autorotate) * delta
+
+          dots.forEach((dot) => {
+            spherical.setFromVector3(dot.position)
+            spherical.radius = 600
+            spherical.theta += rotation
+
+            vector.setFromSpherical(spherical)
+
+            dot.position.copy(vector)
+            dot.lookAt(0, 0, 0)
+          })
+        }
+
+        lastTimestamp = timestamp
 
         renderer.render(scene, camera)
       }
