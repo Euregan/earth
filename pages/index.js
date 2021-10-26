@@ -6,27 +6,31 @@ const Home = () => {
 
   return (
     <main>
-      <div className="punchline banner">
-        The good old planet Earth,
-        <br />
-        now in 3D
+      <div className="banner">
+        <h1>
+          Good old planet Earth,
+          <br />
+          now in 3D
+        </h1>
+        <p>
+          Use it easily in any React project! Simply run
+          <br />
+          <code>npm install 3d-earth-globe</code> <br />
+          or
+          <br />
+          <code>yarn add 3d-earth-globe</code>
+        </p>
       </div>
       <Earth
         autorotate
         style={{
-          position: 'absolute',
-          right: '0rem',
-          top: '6rem',
-          width: '65vw',
-          height: '65vw',
+          position: 'fixed',
+          right: '0',
+          top: '0',
+          width: '100vh',
+          height: '100vh',
         }}
       />
-      <div className="description banner">
-        <p>
-          Use it easily in any React project! Simply run{' '}
-          <code>npm install 3d-earth-globe</code>
-        </p>
-      </div>
       <div className="api banner">
         <h3>API documentation coming soon!</h3>
         <p>
@@ -39,43 +43,34 @@ const Home = () => {
       </div>
       <style jsx>{`
         main {
-          clip-path: polygon(0% 0%, 100% 0, 100% 100%, 0 100%);
-          overflow: hidden;
+          background: linear-gradient(125deg, #16243c 0%, #020a14 100%);
         }
 
         .banner {
-          padding: 5rem;
           color: white;
+          padding: 5rem;
+          box-sizing: border-box;
+          // full width minus the planet width plus the padding
+          width: calc(100% - 100vh + 5rem);
+          height: 100vh;
+
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
 
-        .punchline {
-          background: #01234d;
-          background: linear-gradient(90deg, #023f88 0%, #01234d 100%);
-
-          height: 40rem;
-          clip-path: polygon(0% 0%, 100% 0, 100% 100%, 0 60%);
-          margin-bottom: -20rem;
-
-          font-size: 8.5rem;
+        h1 {
+          font-size: 4rem;
         }
 
-        .description {
-          padding-top: 12rem;
-          font-size: 3rem;
-
-          background: #083e22;
-          background: linear-gradient(90deg, #148139 0%, #083e22 100%);
-        }
-        .description > p {
-          width: 40rem;
+        p {
+          font-size: 2rem;
         }
 
         .api {
           font-size: 2rem;
-
-          background: #01234d;
-          background: linear-gradient(90deg, #023f88 0%, #01234d 100%);
         }
+
         .api > h3 {
           font-size: 3rem;
           font-weight: normal;

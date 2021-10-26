@@ -55,7 +55,7 @@ const generateDots = (dotCount, image, imageContext) => {
         if (gl_FragCoord.z > ${visibleThreshold}) {
           gl_FragColor.a = 1.0 - (gl_FragCoord.z - ${visibleThreshold}) / (${invisibleThreshold} - ${visibleThreshold});
         }
-  		}
+      }
     `,
   })
   material.transparent = true
